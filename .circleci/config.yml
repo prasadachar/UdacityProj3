@@ -120,7 +120,7 @@ jobs:
           name: Font-end security scan
           command: |
             cd frontend
-            npm audit --audit-level=critical --force
+            npm audit fix --audit-level=critical --force
 
   scan-backend:
     docker:
@@ -133,8 +133,7 @@ jobs:
           name: Back-end security scan
           command: |
             cd backend
-            npm audit fix
-            #npm audit --audit-level=critical --force
+            npm audit fix --audit-level=critical --force
 
   deploy-infrastructure:
     docker:
