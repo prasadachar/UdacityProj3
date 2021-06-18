@@ -155,9 +155,9 @@ jobs:
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/frontend.yml \
-              --stack-name "udapeople-frontend-<< pipeline.parameters.workflow-id >>" \
-              --parameter-overrides ID="<< pipeline.parameters.workflow-id >>" \
-              --tags project=udapeople
+              #--stack-name "udapeople-frontend-<< pipeline.parameters.workflow-id >>" \
+              #--parameter-overrides ID="<< pipeline.parameters.workflow-id >>" \
+              #--tags project=udapeople
       - run:
           name: Add back-end ip to ansible inventory
           command: |
