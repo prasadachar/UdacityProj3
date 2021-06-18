@@ -94,6 +94,7 @@ jobs:
           name: Font-end test
           command: |
             cd frontend
+            npm i
             npm run test
                 
   test-backend:
