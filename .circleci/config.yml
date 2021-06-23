@@ -19,11 +19,11 @@ commands:
           name: Destroy environments
           when: on_fail
           command: |
-            aws s3 rm --recursive s3://udapeople-<< pipeline.parameters.workflow-id >>
+            aws s3 rm --recursive s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}
             aws cloudformation delete-stack \
-              --stack-name "udapeople-backend-<< pipeline.parameters.workflow-id >>"
+              --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}"
             aws cloudformation delete-stack \
-              --stack-name "udapeople-frontend-<< pipeline.parameters.workflow-id >>"
+              --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}"
 
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
@@ -36,7 +36,7 @@ commands:
           when: on_fail
           command: |
             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
-            export SUCCESS=$(curl -H "token: << pipeline.parameters.memstash-token >>" --request GET https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID})
+            export SUCCESS=$(curl -H "token: ${CIRCLE_WORKFLOW_ID}" --request GET https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID})
             if(( $SUCCESS==1 )); 
             then
               cd ~/project/backend
@@ -197,7 +197,7 @@ jobs:
             echo TYPEORM_MIGRATIONS_DIR=./src/migrations >> "backend/.env"
             echo NODE_ENV=production >> "backend/.env"
 
-            echo TYPEORM_HOST=database-1.crcmxnn6pmse.us-west-1.rds.amazonaws.com >> "backend/.env"
+            echo TYPEORM_HOST=database-2.crcmxnn6pmse.us-west-1.rds.amazonaws.com >> "backend/.env"
             echo TYPEORM_PORT=5432 >> "backend/.env"
             echo TYPEORM_USERNAME=postgres >> "backend/.env"
             echo TYPEORM_PASSWORD=password >> "backend/.env"
@@ -230,7 +230,7 @@ jobs:
             echo TYPEORM_MIGRATIONS=./src/migrations/*.ts >> "backend/.env"
             echo TYPEORM_MIGRATIONS_DIR=./src/migrations >> "backend/.env"
             echo NODE_ENV=production >> "backend/.env"
-            echo TYPEORM_HOST=database-1.crcmxnn6pmse.us-west-1.rds.amazonaws.com >> "backend/.env"
+            echo TYPEORM_HOST=database-2.crcmxnn6pmse.us-west-1.rds.amazonaws.com >> "backend/.env"
             echo TYPEORM_PORT=5432 >> "backend/.env"
             echo TYPEORM_USERNAME=postgres >> "backend/.env"
             echo TYPEORM_PASSWORD=password >> "backend/.env"
@@ -247,8 +247,9 @@ jobs:
       - run:
           name: Send migration results to memstash
           command: |
-            curl -H "Content-Type: text/plain" -H "token: << pipeline.parameters.memstash-token >>" -X PUT -d "1" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID}
-            echo "token: << pipeline.parameters.memstash-token >>" 
+            curl -H "Content-Type: text/plain" -H "token: ${CIRCLE_WORKFLOW_ID}" \
+            --request PUT \
+            --data "1" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID}
       - revert-migrations
       - destroy-environment
 
@@ -287,7 +288,7 @@ jobs:
       - run:
           name: Deploy frontend objects
           command: |
-            aws s3 cp --recursive frontend/dist "s3://udapeople-<< pipeline.parameters.workflow-id >>"
+            aws s3 cp --recursive frontend/dist "s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}"
       - revert-migrations
       - destroy-environment    
                     
@@ -353,7 +354,7 @@ jobs:
       - run:
           name: Frontend smoke test.
           command: |
-            URL="http://udapeople-<< pipeline.parameters.workflow-id >>.s3-website-eu-west-3.amazonaws.com"
+            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-west-1.amazonaws.com"
             echo $URL
 
             if curl -s ${URL} | grep "Welcome"
@@ -383,23 +384,28 @@ jobs:
       - run:
           name: Save old workflow ID
           command: |
-            export OldWorkflowID=$(aws cloudformation \
-              list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
-              --no-paginate --output text)
+            export OldWorkflowID=$(aws cloudformation list-exports \
+            --query "Exports[?Name==\`WorkflowID\`].Value" \
+            --no-paginate --output text)
+            
+            export STACKS=$(aws cloudformation list-stacks \
+            --query "StackSummaries[*].StackName" \
+            --stack-status-filter CREATE_COMPLETE \
+            --no-paginate --output text)
+            
             echo "Old Workflow ID: ${OldWorkflowID}"
+            echo STACKS: "$STACKS"
 
-            curl -H "Content-Type: text/plain" \
-              -H "token: << pipeline.parameters.memstash-token >>" \
-              --request PUT --data $OldWorkflowID \
-              https://api.memstash.io/values/old_workflow_id_${CIRCLE_WORKFLOW_ID}
-              echo "token: << pipeline.parameters.memstash-token >>" 
+            curl -H "Content-Type: text/plain" -H "token: OldWorkflowID-${CIRCLE_WORKFLOW_ID}" \
+            --request PUT \
+            --data "$OldWorkflowID" https://api.memstash.io/values/OldWorkflowID
       - run:
           name: Update cloudfront distribution
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/cloudfront.yml \
               --stack-name "udapeople-cloudfront" \
-              --parameter-overrides WorkflowID="<< pipeline.parameters.workflow-id >>" \
+              --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
               --tags project=udapeople
       - revert-migrations
       - destroy-environment
@@ -412,10 +418,16 @@ jobs:
       - run:
           name: Remove old stacks and files
           command: |
-            export OldWorkflowID=$(curl -H "token: << pipeline.parameters.memstash-token >>" --request GET https://api.memstash.io/values/old_workflow_id_${CIRCLE_WORKFLOW_ID})
-            echo "Old Workflow ID: ${OldWorkflowID}"
+            OldWorkflowID=$(curl -H "token: OldWorkflowID-${CIRCLE_WORKFLOW_ID}" \
+                        --request GET https://api.memstash.io/values/OldWorkflowID)
+            export STACKS=$(aws cloudformation list-stacks \
+            --query "StackSummaries[*].StackName" \
+            --stack-status-filter CREATE_COMPLETE \
+            --no-paginate --output text)
+            echo OldWorkflowID: "$OldWorkflowID"
+            echo STACKS: "$STACKS" 
 
-            if [ "${OldWorkflowID}" != "<< pipeline.parameters.workflow-id >>" ]
+            if [ ! -z $OldWorkflowID ]
             then
               aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
               aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
