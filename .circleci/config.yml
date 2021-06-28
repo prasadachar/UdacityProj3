@@ -260,7 +260,7 @@ jobs:
 
   configure-infrastructure:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: python:3.9.1-alpine3.12
     steps:
       - checkout
       - attach_workspace:
@@ -280,7 +280,7 @@ jobs:
             echo ENVIRONMENT=production > backend/.env
             echo TYPEORM_CONNECTION=postgres >> backend/.env
             echo TYPEORM_ENTITIES=./src/modules/domain/**/*.entity.ts >> backend/.env
-            echo TYPEORM_HOST=database-2.crcmxnn6pmse.us-west-1.rds.amazonaws.com >> backend/.env
+            echo TYPEORM_HOST=database-1.crcmxnn6pmse.us-west-1.rds.amazonaws.com >> backend/.env
             echo TYPEORM_PORT=5432 >> backend/.env
             echo TYPEORM_USERNAME=postgres >> backend/.env
             echo TYPEORM_PASSWORD=password >> backend/.env
@@ -298,7 +298,7 @@ jobs:
 
   run-migrations:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: python:3.9.1-alpine3.12
     steps:
       - checkout
       - run:
@@ -316,7 +316,7 @@ jobs:
             echo TYPEORM_MIGRATIONS_DIR=./src/migrations >> .env
             echo TYPEORM_ENTITIES=./src/modules/domain/**/*.entity.ts >> .env
             echo TYPEORM_MIGRATIONS=./src/migrations/*.ts >> .env
-            echo TYPEORM_HOST=database-2.crcmxnn6pmse.us-west-1.rds.amazonaws.com >> .env
+            echo TYPEORM_HOST=database-1.crcmxnn6pmse.us-west-1.rds.amazonaws.com >> .env
             echo TYPEORM_PORT=5432 >> .env
             echo TYPEORM_USERNAME=postgres >> .env
             echo TYPEORM_PASSWORD=password >> .env
@@ -369,7 +369,7 @@ jobs:
 
   deploy-frontend:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: python:3.9.1-alpine3.12
     steps:
       - checkout
       - run:
@@ -411,7 +411,7 @@ jobs:
 
   deploy-backend:
       docker:
-        - image: python:3.7-alpine3.11
+        - image: python:3.9.1-alpine3.12
       steps:
         - checkout
         - attach_workspace:
@@ -467,7 +467,7 @@ jobs:
 
   smoke-test:
       docker:
-        - image: python:3.7-alpine3.11
+        - image: python:3.9.1-alpine3.12
       steps:
         - checkout
         - attach_workspace:
