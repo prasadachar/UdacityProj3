@@ -280,7 +280,7 @@ jobs:
             echo ENVIRONMENT=production > backend/.env
             echo TYPEORM_CONNECTION=postgres >> backend/.env
             echo TYPEORM_ENTITIES=./src/modules/domain/**/*.entity.ts >> backend/.env
-            echo TYPEORM_HOST=database-2.crcmxnn6pmse.us-west-1.rds.amazonaws.com >> backend/.env
+            echo TYPEORM_HOST=database-1.crcmxnn6pmse.us-west-1.rds.amazonaws.com >> backend/.env
             echo TYPEORM_PORT=5432 >> backend/.env
             echo TYPEORM_USERNAME=postgres >> backend/.env
             echo TYPEORM_PASSWORD=password >> backend/.env
@@ -316,7 +316,7 @@ jobs:
             echo TYPEORM_MIGRATIONS_DIR=./src/migrations >> .env
             echo TYPEORM_ENTITIES=./src/modules/domain/**/*.entity.ts >> .env
             echo TYPEORM_MIGRATIONS=./src/migrations/*.ts >> .env
-            echo TYPEORM_HOST=database-2.crcmxnn6pmse.us-west-1.rds.amazonaws.com >> .env
+            echo TYPEORM_HOST=database-1.crcmxnn6pmse.us-west-1.rds.amazonaws.com >> .env
             echo TYPEORM_PORT=5432 >> .env
             echo TYPEORM_USERNAME=postgres >> .env
             echo TYPEORM_PASSWORD=password >> .env
@@ -445,7 +445,7 @@ jobs:
               echo TYPEORM_MIGRATIONS_DIR=./src/migrations >> backend/.env
               echo TYPEORM_ENTITIES=./src/modules/domain/**/*.entity.ts >> backend/.env
               echo TYPEORM_MIGRATIONS=./src/migrations/*.ts >> backend/.env
-              echo TYPEORM_HOST=database-2.crcmxnn6pmse.us-west-1.rds.amazonaws.com >> backend/.env
+              echo TYPEORM_HOST=database-1.crcmxnn6pmse.us-west-1.rds.amazonaws.com >> backend/.env
               echo TYPEORM_PORT=5432 >> backend/.env
               echo TYPEORM_USERNAME=postgres >> backend/.env
               echo TYPEORM_PASSWORD=password >> backend/.env
@@ -530,10 +530,12 @@ jobs:
           command: |
             pwd
             ls -la
-            aws cloudformation update-stack \
-              --use-previous-template  \
-              --stack-name udapeople-deployment \
-              --parameters ParameterKey=WorkflowID,ParameterValue=${CIRCLE_WORKFLOW_ID:0:7},UsePreviousValue=false 
+            command: |
+            aws cloudformation deploy \
+              --template-file .circleci/files/cloudfront.yml \
+              --stack-name "udapeople-cloudfront" \
+              --parameter-overrides WorkflowID="<< pipeline.parameters.workflow-id >>" \
+              --tags project=udapeople
       - persist_to_workspace:
           root: ~/
           paths:
