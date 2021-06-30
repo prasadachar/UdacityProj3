@@ -2,13 +2,13 @@
 https://github.com/prasadachar/UdacityProj3
 
 2. Public URL for your S3 Bucket (aka, your green candidate front-end) [URL02]:
-http://udapeople-9c713a0.s3-website-us-west-1.amazonaws.com
+http://udapeople-a4e7c43.s3-website-us-west-1.amazonaws.com
 
 3. Public URL for your CloudFront distribution (aka, your blue production front-end) [URL03]:
-d2e9uqkme7hsgg.cloudfront.net
+http://d34bfhp0b58fl5.cloudfront.net
 
 4. Public URLs to deployed application back-end in EC2 [URL04]:
-http://ec2-184-169-192-99.us-west-1.compute.amazonaws.com:3030
+http://http://ec2-13-57-246-154.us-west-1.compute.amazonaws.com:3030/api/status
 
 5. Public URL to your Prometheus Server [URL05]:
 http://ec2-54-215-188-61.us-west-1.compute.amazonaws.com:9090/targets
